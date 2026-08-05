@@ -1119,5 +1119,9 @@ namespace CarCareTracker.Helper
         {
             return path.StartsWithSegments("/api") || path.StartsWithSegments("/kiosk") || path.StartsWithSegments("/images") || path.StartsWithSegments("/documents");
         }
+        public static string GetStaticModalAttribute(bool enablePersistentDialog)
+        {
+            return enablePersistentDialog ? "data-bs-backdrop=static data-bs-keyboard=false" : string.Empty;
+        }
     }
 }
