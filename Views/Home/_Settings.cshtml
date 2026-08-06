@@ -30,7 +30,7 @@
                 </div>
                 <div class="form-check form-switch">
                     <input class="form-check-input" onChange="updateSettings()" type="checkbox" role="switch" id="enablePersistentDialog" checked="@Model.UserConfig.EnablePersistentDialog">
-                    <label class="form-check-label" for="enablePersistentDialog">@translator.Translate(userLanguage, "Persistent Dialogs")</label>
+                    <label class="form-check-label" for="enablePersistentDialog">@translator.Translate(userLanguage, "Persistent Dialogs")<span class="ms-2 settingsToolTip" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="@translator.Translate(userLanguage, "Prevents Closing When Clicking Outside of Dialogs")"><i class="bi bi-question-circle"></i></span></label>
                 </div>
             </div>
             <div class="border rounded p-2 bg-secondary-subtle mb-2">
