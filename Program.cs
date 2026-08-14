@@ -151,66 +151,6 @@ app.UseExceptionHandler("/Home/Error");
 
 //static file security
 app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-           Path.Combine(builder.Environment.ContentRootPath, "data", "images")),
-    RequestPath = "/images",
-    OnPrepareResponse = ctx =>
-    {
-        if (ctx.Context.Request.Path.StartsWithSegments("/images"))
-        {
-            ctx.Context.Response.Headers.Append("Cache-Control", "no-store");
-            var userIsAuthenticated = ctx.Context.User.Identity?.IsAuthenticated ?? false;
-            if (!userIsAuthenticated)
-            {
-                ctx.Context.Response.Redirect("/Login");
-            }
-        }
-    }
-});
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-           Path.Combine(builder.Environment.ContentRootPath, "data", "documents")),
-    RequestPath = "/documents",
-    OnPrepareResponse = ctx =>
-    {
-        if (ctx.Context.Request.Path.StartsWithSegments("/documents"))
-        {
-            ctx.Context.Response.Headers.Append("Cache-Control", "no-store");
-            var userIsAuthenticated = ctx.Context.User.Identity?.IsAuthenticated ?? false;
-            if (!userIsAuthenticated)
-            {
-                ctx.Context.Response.Redirect("/Login");
-            }
-        }
-    }
-});
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-           Path.Combine(builder.Environment.ContentRootPath, "data", "translations")),
-    RequestPath = "/translations"
-});
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-           Path.Combine(builder.Environment.ContentRootPath, "data", "temp")),
-    RequestPath = "/temp",
-    OnPrepareResponse = ctx =>
-    {
-        if (ctx.Context.Request.Path.StartsWithSegments("/temp"))
-        {
-            ctx.Context.Response.Headers.Append("Cache-Control", "no-store");
-            var userIsAuthenticated = ctx.Context.User.Identity?.IsAuthenticated ?? false;
-            if (!userIsAuthenticated)
-            {
-                ctx.Context.Response.Redirect("/Login");
-            }
-        }
-    }
-});
 
 //api middleware
 app.UseWhen(

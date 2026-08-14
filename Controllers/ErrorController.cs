@@ -13,5 +13,9 @@ namespace CarCareTracker.Controllers
             }
             return View("401");
         }
+        public IActionResult NotFound()
+        {
+            return View("404");
+        }
     }
 }
