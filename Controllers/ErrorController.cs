@@ -9,9 +9,9 @@ namespace CarCareTracker.Controllers
         public IActionResult Index(int? statusCode)
         {
             var cleanedStatusCode = statusCode ?? 500;
+            Response.StatusCode = cleanedStatusCode;
             if (User.IsInRole("APIAuth"))
             {
-                Response.StatusCode = cleanedStatusCode;
                 return new EmptyResult();
             }
             switch (cleanedStatusCode)
