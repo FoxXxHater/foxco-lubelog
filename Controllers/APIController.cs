@@ -352,7 +352,7 @@ namespace CarCareTracker.Controllers
             }
             if (!_userLogic.UserCanDirectlyEditVehicle(GetUserID(), id))
             {
-                Response.StatusCode = 401;
+                Response.StatusCode = 403;
                 return Json(OperationResponse.Failed("Access Denied, you don't have access to this vehicle."));
             }
             var result = _userLogic.DeleteAllAccessToVehicle(id) && _vehicleLogic.DeleteVehicleRecords(id);
@@ -410,7 +410,7 @@ namespace CarCareTracker.Controllers
                 {
                     if (!_userLogic.UserCanEditVehicle(GetUserID(), existingVehicle.Id, HouseholdPermission.Edit))
                     {
-                        Response.StatusCode = 401;
+                        Response.StatusCode = 403;
                         return Json(OperationResponse.Failed("Access Denied, you don't have access to this vehicle."));
                     }
                     existingVehicle.Year = int.Parse(input.Year);
