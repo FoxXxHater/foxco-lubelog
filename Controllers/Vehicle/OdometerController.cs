@@ -162,7 +162,7 @@ namespace CarCareTracker.Controllers
             //security check.
             if (!_userLogic.UserCanEditVehicle(GetUserID(), result.VehicleId, HouseholdPermission.View))
             {
-                return Redirect("/Error/Unauthorized");
+                return Forbid();
             }
             //check for equipment
             var equipmentRecords = _equipmentRecordDataAccess.GetEquipmentRecordsByVehicleId(result.VehicleId).OrderByDescending(x => x.IsEquipped).ThenBy(x => x.Description).ToList();

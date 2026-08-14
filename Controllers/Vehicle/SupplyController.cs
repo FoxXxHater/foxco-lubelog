@@ -189,12 +189,12 @@ namespace CarCareTracker.Controllers
                 //security check only if not editing shop supply.
                 if (!_userLogic.UserCanEditVehicle(GetUserID(), result.VehicleId, HouseholdPermission.View))
                 {
-                    return Redirect("/Error/Unauthorized");
+                    return Forbid();
                 }
             }
             else if (!_config.GetServerEnableShopSupplies())
             {
-                return Redirect("/Error/Unauthorized");
+                return Forbid();
             }
             if (result.RequisitionHistory.Any())
             {

@@ -4,18 +4,27 @@ namespace CarCareTracker.Controllers
 {
     public class ErrorController : Controller
     {
-        public IActionResult Unauthorized()
+        [Route("Error/{statusCode?}")]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Index(int? statusCode)
         {
+            var cleanedStatusCode = statusCode ?? 500;
             if (User.IsInRole("APIAuth"))
             {
-                Response.StatusCode = 403;
+                Response.StatusCode = cleanedStatusCode;
                 return new EmptyResult();
             }
-            return View("401");
-        }
-        public IActionResult NotFound()
-        {
-            return View("404");
+            switch (cleanedStatusCode)
+            {
+                case 401:
+                    return View("401");
+                case 403:
+                    return View("403");
+                case 404:
+                    return View("404");
+                default:
+                    return View("500");
+            }
         }
     }
 }

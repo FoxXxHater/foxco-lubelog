@@ -228,7 +228,7 @@ namespace CarCareTracker.Controllers
                     vehicles.Add(_dataAccess.GetVehicleById(vehicleId));
                 } else
                 {
-                    return new RedirectResult("/Error/Unauthorized");
+                    return Forbid();
                 }
             } else
             {

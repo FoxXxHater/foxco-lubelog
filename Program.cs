@@ -147,7 +147,8 @@ builder.Services.Configure<FormOptions>(options =>
 var app = builder.Build();
 
 //configure the HTTP request pipeline.
-app.UseExceptionHandler("/Home/Error");
+app.UseExceptionHandler("/Error");
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 //static file security
 app.UseStaticFiles();

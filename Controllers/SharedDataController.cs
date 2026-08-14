@@ -48,16 +48,16 @@ namespace CarCareTracker.Controllers
         [Route("/documents/{fileName}")]
         [Route("/translations/{fileName}")]
         [Route("/temp/{fileName}")]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult GetStaticFile(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                return Redirect("/Error/NotFound");
+                return NotFound();
             }
             var fullFilePath = _fileHelper.GetFullFilePath(Request.Path);
             if (!string.IsNullOrWhiteSpace(fullFilePath))
             {
-                Response.Headers.Append("Cache-Control", "no-store");
                 var fileBytes = _fileHelper.GetFileBytes(fullFilePath);
                 if (_mimeTypeProvider.TryGetContentType(fileName, out string? contentType))
                 {
@@ -65,7 +65,7 @@ namespace CarCareTracker.Controllers
                 }
                 return File(fileBytes, "application/octet-stream");
             }
-            return Redirect("/Error/NotFound");
+            return NotFound();
         }
     }
 }
