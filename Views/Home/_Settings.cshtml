@@ -12,12 +12,12 @@
     <hr />
     <div class="col-12 col-md-6">
         <div class="d-flex flex-row flex-wrap gap-2 justify-content-between p-2">
-            <div class="col-1 flex-grow-1 text-center break-all d-grid"><a class="btn btn-outline-primary" onclick="loadSettingsPage(1)" data-page-nav="1">@translator.Translate(userLanguage, "UI")</a></div>
-            <div class="col-1 flex-grow-1 text-center break-all d-grid"><a class="btn btn-outline-primary" onclick="loadSettingsPage(2)" data-page-nav="2">@translator.Translate(userLanguage, "Formatting")</a></div>
-            <div class="col-1 flex-grow-1 text-center break-all d-grid"><a class="btn btn-outline-primary" onclick="loadSettingsPage(3)" data-page-nav="3">@translator.Translate(userLanguage, "Automation")</a></div>
+            <div class="col-1 flex-grow-1 text-center break-all d-grid"><a class="btn btn-outline-primary text-truncate" onclick="loadSettingsPage(1)" data-page-nav="1">@translator.Translate(userLanguage, "UI")</a></div>
+            <div class="col-1 flex-grow-1 text-center break-all d-grid"><a class="btn btn-outline-primary text-truncate" onclick="loadSettingsPage(2)" data-page-nav="2">@translator.Translate(userLanguage, "Formatting")</a></div>
+            <div class="col-1 flex-grow-1 text-center break-all d-grid"><a class="btn btn-outline-primary text-truncate" onclick="loadSettingsPage(3)" data-page-nav="3">@translator.Translate(userLanguage, "Automation")</a></div>
             @if (User.IsInRole(nameof(UserData.IsRootUser)))
             {
-                <div class="col-1 flex-grow-1 text-center break-all d-grid"><a class="btn btn-outline-primary" onclick="loadSettingsPage(4)" data-page-nav="4">@translator.Translate(userLanguage, "Admin")</a></div>
+                <div class="col-1 flex-grow-1 text-center break-all d-grid"><a class="btn btn-outline-primary text-truncate" onclick="loadSettingsPage(4)" data-page-nav="4">@translator.Translate(userLanguage, "Admin")</a></div>
             }
         </div>
         <input id="preferredGasUnit" style="display:none;" value="@Model.UserConfig.PreferredGasUnit" />
