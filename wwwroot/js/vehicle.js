@@ -249,7 +249,7 @@ function showAddReminderModal(reminderModalInput) {
         reminderModalInput['vehicleId'] = GetVehicleId().vehicleId;
         $.post('/Vehicle/GetAddReminderRecordPartialView', { reminderModel: reminderModalInput }, function (data) {
             $("#reminderRecordModalContent").html(data);
-            initDatePicker($('#reminderDate'), true);
+            initDatePicker($('#reminderDate'), 'any');
             initTagSelector($("#reminderRecordTag"));
             $("#reminderRecordModal").modal("show");
         });
@@ -257,7 +257,7 @@ function showAddReminderModal(reminderModalInput) {
         let blankReminderModal = { vehicleId: GetVehicleId().vehicleId };
         $.post('/Vehicle/GetAddReminderRecordPartialView', { reminderModel: blankReminderModal }, function (data) {
             $("#reminderRecordModalContent").html(data);
-            initDatePicker($('#reminderDate'), true);
+            initDatePicker($('#reminderDate'), 'any');
             initTagSelector($("#reminderRecordTag"));
             $("#reminderRecordModal").modal("show");
         });

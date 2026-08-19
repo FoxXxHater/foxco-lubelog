@@ -2,7 +2,7 @@
     $.get(`/Vehicle/GetReminderRecordForEditById?reminderRecordId=${reminderId}`, function (data) {
         if (data) {
             $("#reminderRecordModalContent").html(data); 
-            initDatePicker($('#reminderDate'), true);
+            initDatePicker($('#reminderDate'), 'any');
             initTagSelector($("#reminderRecordTag"));
             $("#reminderRecordModal").modal("show");
             $('#reminderRecordModal').off('shown.bs.modal').on('shown.bs.modal', function () {

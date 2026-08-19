@@ -432,8 +432,15 @@ function initExtraFieldDatePicker(fieldName) {
         });
     }
 }
-function initDatePicker(input, futureOnly) {
-    if (futureOnly) {
+function initDatePicker(input, dateRange) {
+    //dateRange: 'any' => past and future dates allowed, true => future dates only, otherwise past dates only.
+    if (dateRange === 'any') {
+        input.datepicker({
+            format: getShortDatePattern().pattern,
+            autoclose: true,
+            weekStart: getGlobalConfig().firstDayOfWeek
+        });
+    } else if (dateRange) {
         input.datepicker({
             startDate: "+0d",
             format: getShortDatePattern().pattern,
@@ -2210,6 +2217,9 @@ function bindTabEvents(tab) {
             break;
         case "garage-tab":
             setupEventHub(`kiosk`, loadGarage, '');
+            break;
+        case "upcoming-tab":
+            setupEventHub(`kiosk`, getUpcomingItems, '');
             break;
         case "settings-tab":
             break;

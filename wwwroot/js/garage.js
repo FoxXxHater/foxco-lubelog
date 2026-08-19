@@ -50,6 +50,9 @@ function bindTabEvent() {
             case "calendar-tab":
                 getVehicleCalendarEvents();
                 break;
+            case "upcoming-tab":
+                getUpcomingItems();
+                break;
         }
         $(`.lubelogger-tab #${e.target.id}`).addClass('active');
         $(`.lubelogger-mobile-nav #${e.target.id}`).addClass('active');
@@ -67,6 +70,9 @@ function bindTabEvent() {
                 case "calendar-tab":
                     $("#calendar-tab-pane").html("");
                     break;
+                case "upcoming-tab":
+                    $("#upcoming-tab-pane").html("");
+                    break;
             }
             $(`.lubelogger-tab #${e.relatedTarget.id}`).removeClass('active');
             $(`.lubelogger-mobile-nav #${e.relatedTarget.id}`).removeClass('active');
@@ -82,8 +88,17 @@ function getVehicleCalendarEvents() {
         }
     });
 }
-function showCalendarReminderModal(id) {
+var calendarReminderRefreshCallback = null;
+function refreshCalendarReminderSource() {
+    if (typeof calendarReminderRefreshCallback === 'function') {
+        calendarReminderRefreshCallback();
+    } else {
+        getVehicleCalendarEvents();
+    }
+}
+function showCalendarReminderModal(id, refreshCallback) {
     event.stopPropagation();
+    calendarReminderRefreshCallback = refreshCallback;
     $.get(`/Home/ViewCalendarReminder?reminderId=${id}`, function (data) {
         if (data) {
             $("#reminderRecordCalendarModalContent").html(data);
@@ -120,7 +135,7 @@ function markDoneCalendarReminderRecord(reminderRecordId, e) {
         if (data.success) {
             hideCalendarReminderModal();
             successToast("Reminder Updated");
-            getVehicleCalendarEvents();
+            refreshCalendarReminderSource();
         } else {
             errorToast(data.message);
         }
@@ -137,7 +152,7 @@ function deleteCalendarReminderRecord(reminderRecordId, e) {
                 if (data.success) {
                     hideCalendarReminderModal();
                     successToast("Reminder Deleted");
-                    getVehicleCalendarEvents();
+                    refreshCalendarReminderSource();
                 } else {
                     errorToast(data.message);
                     $("#workAroundInput").hide();
@@ -161,7 +176,6 @@ function initCalendar() {
         });
     }
     $(".reminderCalendarViewContent").datepicker({
-        startDate: "+0d",
         format: getShortDatePattern().pattern,
         todayHighlight: true,
         weekStart: getGlobalConfig().firstDayOfWeek,
@@ -176,6 +190,58 @@ function initCalendar() {
             }
         }
     });
+}
+function getUpcomingItems() {
+    $.get('/Home/Upcoming', function (data) {
+        if (data) {
+            $("#upcoming-tab-pane").html(data);
+        }
+    });
+}
+function showUpcomingReminderModal(id) {
+    showCalendarReminderModal(id, getUpcomingItems);
+}
+function handleUpcomingSearchKeyPress(event) {
+    if (event.keyCode == 13) {
+        filterUpcoming();
+    } else {
+        setDebounce(filterUpcoming);
+    }
+}
+function filterUpcoming() {
+    let vehicleId = $('#upcomingVehicleSelector').val();
+    let urgency = $('#upcomingUrgencyFilter').val();
+    let searchTerm = ($('#upcomingSearchInput').val() || '').trim().toLowerCase();
+    $('.upcoming-item').each(function () {
+        let elem = $(this);
+        let matchesVehicle = (vehicleId == undefined || vehicleId == '0' || elem.attr('data-vehicleid') == vehicleId);
+        let matchesSearch = (searchTerm == '' || elem.text().toLowerCase().indexOf(searchTerm) > -1);
+        let matchesUrgency = true;
+        if (urgency != undefined && urgency != '' && elem.hasClass('upcoming-reminder-item')) {
+            matchesUrgency = elem.attr('data-urgency') == urgency;
+        }
+        if (matchesVehicle && matchesSearch && matchesUrgency) {
+            elem.removeClass('override-hide');
+        } else {
+            elem.addClass('override-hide');
+        }
+    });
+    updateUpcomingAggregates();
+}
+function setUpcomingAggregate(aggregateType, count) {
+    let label = $(`[data-aggregate-type="${aggregateType}"]`);
+    if (label.length > 0) {
+        label.text(`${label.text().split(':')[0]}: ${count}`);
+    }
+}
+function updateUpcomingAggregates() {
+    let visibleReminders = $('.upcoming-reminder-item:not(.override-hide)');
+    setUpcomingAggregate('upcoming-count', visibleReminders.length);
+    setUpcomingAggregate('upcoming-pastdue-count', visibleReminders.filter("[data-urgency='PastDue']").length);
+    setUpcomingAggregate('upcoming-veryurgent-count', visibleReminders.filter("[data-urgency='VeryUrgent']").length);
+    setUpcomingAggregate('upcoming-urgent-count', visibleReminders.filter("[data-urgency='Urgent']").length);
+    setUpcomingAggregate('upcoming-noturgent-count', visibleReminders.filter("[data-urgency='NotUrgent']").length);
+    setUpcomingAggregate('upcoming-plan-count', $('.upcoming-plan-item:not(.override-hide)').length);
 }
 function performLogOut() {
     $.post('/Login/LogOut', function (data) {

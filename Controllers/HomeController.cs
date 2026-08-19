@@ -1,4 +1,4 @@
-using CarCareTracker.External.Interfaces;
+﻿using CarCareTracker.External.Interfaces;
 using CarCareTracker.Helper;
 using CarCareTracker.Logic;
 using CarCareTracker.Models;
@@ -131,6 +131,25 @@ namespace CarCareTracker.Controllers
             }
             var reminders = _vehicleLogic.GetReminders(vehiclesStored, true);
             return PartialView("_Calendar", reminders);
+        }
+        public IActionResult Upcoming()
+        {
+            var vehiclesStored = _dataAccess.GetVehicles();
+            if (!User.IsInRole(nameof(UserData.IsRootUser)))
+            {
+                vehiclesStored = _userLogic.FilterUserVehicles(vehiclesStored, GetUserID());
+            }
+            var userConfig = _config.GetUserConfig(User);
+            if (userConfig.HideSoldVehicles)
+            {
+                vehiclesStored.RemoveAll(x => !string.IsNullOrWhiteSpace(x.SoldDate));
+            }
+            var viewModel = new UpcomingViewModel
+            {
+                Reminders = _vehicleLogic.GetRemindersForKiosk(vehiclesStored),
+                Plans = _vehicleLogic.GetPlansForKiosk(vehiclesStored, true)
+            };
+            return PartialView("_Upcoming", viewModel);
         }
         public IActionResult ViewCalendarReminder(int reminderId)
         {

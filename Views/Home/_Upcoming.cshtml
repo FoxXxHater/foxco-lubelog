@@ -1,0 +1,152 @@
+﻿@using CarCareTracker.Helper
+@inject IConfigHelper config
+@inject ITranslationHelper translator
+@model UpcomingViewModel
+@{
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+    var reminders = Model.Reminders.OrderByDescending(x => x.Urgency).ThenBy(x => x.Date).ToList();
+    var plans = Model.Plans.OrderBy(x => x.Progress).ThenBy(x => x.Priority).ToList();
+    var vehicles = reminders.Select(x => x.VehicleData)
+                            .Concat(plans.Select(x => x.VehicleData))
+                            .Where(x => x != null)
+                            .GroupBy(x => x.Id)
+                            .Select(x => x.First())
+                            .OrderBy(x => x.Year).ThenBy(x => x.Make).ThenBy(x => x.Model)
+                            .ToList();
+}
+<div class="d-flex flex-column vehicleTabPane">
+    <div class="row">
+        <div class="d-flex justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <span class="badge bg-primary" data-aggregate-type="upcoming-count">@($"{translator.Translate(userLanguage, "# of Reminders")}: {reminders.Count()}")</span>
+                <span class="badge bg-secondary" data-aggregate-type="upcoming-pastdue-count">@($"{translator.Translate(userLanguage, "Past Due")}: {reminders.Where(x => x.Urgency == ReminderUrgency.PastDue).Count()}")</span>
+                <span class="badge bg-danger" data-aggregate-type="upcoming-veryurgent-count">@($"{translator.Translate(userLanguage, "Very Urgent")}: {reminders.Where(x => x.Urgency == ReminderUrgency.VeryUrgent).Count()}")</span>
+                <span class="badge text-bg-warning" data-aggregate-type="upcoming-urgent-count">@($"{translator.Translate(userLanguage, "Urgent")}: {reminders.Where(x => x.Urgency == ReminderUrgency.Urgent).Count()}")</span>
+                <span class="badge bg-success" data-aggregate-type="upcoming-noturgent-count">@($"{translator.Translate(userLanguage, "Not Urgent")}: {reminders.Where(x => x.Urgency == ReminderUrgency.NotUrgent).Count()}")</span>
+                <span class="badge bg-info" data-aggregate-type="upcoming-plan-count">@($"{translator.Translate(userLanguage, "Plans")}: {plans.Count()}")</span>
+            </div>
+            <div class="d-flex align-items-center flex-wrap gap-2 hideOnPrint">
+                <select class="form-select form-select-sm w-auto" id="upcomingVehicleSelector" onchange="filterUpcoming()">
+                    <!option value="0" selected>@translator.Translate(userLanguage, "All Vehicles")</!option>
+                    @foreach (Vehicle vehicle in vehicles)
+                    {
+                        <!option value="@vehicle.Id">@($"{vehicle.Year} {vehicle.Make} {vehicle.Model} #{StaticHelper.GetVehicleIdentifier(vehicle)}")</!option>
+                    }
+                </select>
+                <select class="form-select form-select-sm w-auto" id="upcomingUrgencyFilter" onchange="filterUpcoming()">
+                    <!option value="" selected>@translator.Translate(userLanguage, "Urgency")</!option>
+                    <!option value="PastDue">@translator.Translate(userLanguage, "Past Due")</!option>
+                    <!option value="VeryUrgent">@translator.Translate(userLanguage, "Very Urgent")</!option>
+                    <!option value="Urgent">@translator.Translate(userLanguage, "Urgent")</!option>
+                    <!option value="NotUrgent">@translator.Translate(userLanguage, "Not Urgent")</!option>
+                </select>
+                <input type="text" class="form-control form-control-sm w-auto" id="upcomingSearchInput" onkeyup="handleUpcomingSearchKeyPress(event)" placeholder="@translator.Translate(userLanguage, "Search")">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="getUpcomingItems()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+        </div>
+    </div>
+    <div class="row vehicleDetailTabContainer flex-grow-1">
+        <div class="col-12">
+            <div class="row mt-2 showOnPrint">
+                <div class="d-flex">
+                    <img src="@config.GetLogoUrl()" class="lubelogger-logo" />
+                </div>
+            </div>
+            <h5 class="mt-2"><i class="bi bi-bell me-2"></i>@translator.Translate(userLanguage, "Reminders")</h5>
+            @if (reminders.Any())
+            {
+                <table class="table table-hover @(userConfig.UseGridInMobile ? "" : "ll-responsive-table")">
+                    <thead class="sticky-top">
+                        <tr class="d-flex">
+                            <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Vehicle")</th>
+                            <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Urgency")</th>
+                            <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Due Date")</th>
+                            <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Description")</th>
+                            <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Notes")</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (KioskReminderViewModel reminder in reminders)
+                        {
+                            var distanceUnit = reminder.VehicleData.UseHours ? "h" : userConfig.UseMPG ? "mi." : "km";
+                            <tr class="d-flex user-select-none upcoming-item upcoming-reminder-item" style="cursor:pointer;" data-vehicleid="@reminder.VehicleData.Id" data-urgency="@reminder.Urgency" onclick="showUpcomingReminderModal(@reminder.Id)">
+                                <td data-label="@translator.Translate(userLanguage, "Vehicle")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">
+                                    <span>@($"{reminder.VehicleData.Year} {reminder.VehicleData.Make} {reminder.VehicleData.Model}")</span>
+                                    <br />
+                                    <small class="text-body-secondary">@StaticHelper.GetVehicleIdentifier(reminder.VehicleData)</small>
+                                </td>
+                                <td data-label="@translator.Translate(userLanguage, "Urgency")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">
+                                    <span class="badge @StaticHelper.GetReminderUrgencyColor(reminder.Urgency)">@translator.Translate(userLanguage, StaticHelper.GetTitleCaseReminderUrgency(reminder.Urgency))</span>
+                                </td>
+                                <td data-label="@translator.Translate(userLanguage, "Due Date")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">
+                                    @if (reminder.UserMetric == ReminderMetric.Date || reminder.UserMetric == ReminderMetric.Both)
+                                    {
+                                        <div><i class="bi bi-calendar-event me-1"></i>@reminder.Date.ToShortDateString()</div>
+                                        <small class="text-body-secondary">@($"{reminder.DueDays} {translator.Translate(userLanguage, "days remaining")}")</small>
+                                    }
+                                    @if (reminder.UserMetric == ReminderMetric.Odometer || reminder.UserMetric == ReminderMetric.Both)
+                                    {
+                                        <div><i class="bi bi-speedometer me-1"></i>@reminder.Mileage</div>
+                                        <small class="text-body-secondary">@($"{reminder.DueMileage} {distanceUnit} {translator.Translate(userLanguage, "remaining")}")</small>
+                                    }
+                                </td>
+                                <td data-label="@translator.Translate(userLanguage, "Description")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">@reminder.Description</td>
+                                <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@StaticHelper.TruncateStrings(reminder.Notes)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-body-secondary">@translator.Translate(userLanguage, "No records available to display")</p>
+            }
+            <h5 class="mt-4"><i class="bi bi-list-check me-2"></i>@translator.Translate(userLanguage, "Plans")</h5>
+            @if (plans.Any())
+            {
+                <table class="table table-hover @(userConfig.UseGridInMobile ? "" : "ll-responsive-table")">
+                    <thead class="sticky-top">
+                        <tr class="d-flex">
+                            <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Vehicle")</th>
+                            <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Priority")</th>
+                            <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Progress")</th>
+                            <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Description")</th>
+                            <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Notes")</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (KioskPlanViewModel plan in plans)
+                        {
+                            <tr class="d-flex user-select-none upcoming-item upcoming-plan-item" style="cursor:pointer;" data-vehicleid="@plan.VehicleData.Id" onclick="viewVehicle(@plan.VehicleData.Id, 'plan')">
+                                <td data-label="@translator.Translate(userLanguage, "Vehicle")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">
+                                    <span>@($"{plan.VehicleData.Year} {plan.VehicleData.Make} {plan.VehicleData.Model}")</span>
+                                    <br />
+                                    <small class="text-body-secondary">@StaticHelper.GetVehicleIdentifier(plan.VehicleData)</small>
+                                </td>
+                                <td data-label="@translator.Translate(userLanguage, "Priority")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">
+                                    <span class="badge @StaticHelper.GetPlanRecordColor(plan.Priority, plan.Progress)">@translator.Translate(userLanguage, plan.Priority.ToString())</span>
+                                </td>
+                                <td data-label="@translator.Translate(userLanguage, "Progress")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">
+                                    <span class="badge text-bg-secondary">@translator.Translate(userLanguage, StaticHelper.GetPlanRecordProgress(plan.Progress))</span>
+                                </td>
+                                <td data-label="@translator.Translate(userLanguage, "Description")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">@plan.Description</td>
+                                <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@StaticHelper.TruncateStrings(plan.Notes)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-body-secondary">@translator.Translate(userLanguage, "No records available to display")</p>
+            }
+        </div>
+    </div>
+</div>
+<div class="modal fade" data-bs-focus="false" id="reminderRecordCalendarModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" id="reminderRecordCalendarModalContent">
+        </div>
+    </div>
+</div>
