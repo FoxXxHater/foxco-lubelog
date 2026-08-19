@@ -100,11 +100,11 @@ namespace CarCareTracker.Controllers
             _httpClientFactory = httpClientFactory;
             _dbHealthCheck = dbHealthCheck;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             //load up documentation
             var apiDocFilePath = _fileHelper.GetFullFilePath("/defaults/api.json");
-            var apiDocText = _fileHelper.GetFileText(apiDocFilePath);
+            var apiDocText = await _fileHelper.GetFileTextAsync(apiDocFilePath);
             var apiDocData = JsonSerializer.Deserialize<List<APIDocumentation>>(apiDocText) ?? new List<APIDocumentation>();
             return View(apiDocData);
         }

@@ -16,7 +16,7 @@ namespace CarCareTracker.Controllers
         }
         [AllowAnonymous]
         [Route("/css/theme.css")]
-        public IActionResult GetConfiguredTheme()
+        public async Task<IActionResult> GetConfiguredTheme()
         {
             string uiTheme = string.Empty;
             string themeContent = string.Empty;
@@ -37,7 +37,7 @@ namespace CarCareTracker.Controllers
             }
             if (!string.IsNullOrWhiteSpace(uiTheme))
             {
-                themeContent = _fileHelper.GetTheme(uiTheme);
+                themeContent = await _fileHelper.GetTheme(uiTheme);
             }
             return Content(themeContent, "text/css");
         }
