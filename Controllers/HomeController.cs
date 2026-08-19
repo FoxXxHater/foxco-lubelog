@@ -58,6 +58,15 @@ namespace CarCareTracker.Controllers
             _mailHelper = mailHelper;
             _httpClientFactory = httpClientFactory;
         }
+        /// <summary>
+        /// Reads JSON from a URL without requiring the server to send an application/json content type.
+        /// raw.githubusercontent.com serves .json files as text/plain, which GetFromJsonAsync rejects.
+        /// </summary>
+        private static async Task<T?> GetJsonFromUrl<T>(HttpClient httpClient, string url)
+        {
+            var responseBody = await httpClient.GetStringAsync(url);
+            return JsonSerializer.Deserialize<T>(responseBody);
+        }
         private int GetUserID()
         {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty);
@@ -380,7 +389,7 @@ namespace CarCareTracker.Controllers
             try
             {
                 var httpClient = _httpClientFactory.CreateClient();
-                var translations = await httpClient.GetFromJsonAsync<Translations>(StaticHelper.TranslationDirectoryPath) ?? new Translations();
+                var translations = await GetJsonFromUrl<Translations>(httpClient, StaticHelper.TranslationDirectoryPath) ?? new Translations();
                 return PartialView("_Translations", translations);
             }
             catch (Exception ex)
@@ -396,7 +405,7 @@ namespace CarCareTracker.Controllers
             try
             {
                 var httpClient = _httpClientFactory.CreateClient();
-                var translationData = await httpClient.GetFromJsonAsync<Dictionary<string, string>>(StaticHelper.GetTranslationDownloadPath(continent, name)) ?? new Dictionary<string, string>();
+                var translationData = await GetJsonFromUrl<Dictionary<string, string>>(httpClient, StaticHelper.GetTranslationDownloadPath(continent, name)) ?? new Dictionary<string, string>();
                 if (translationData.Any())
                 {
                     var result = _translationHelper.SaveTranslation(name, translationData);
@@ -425,13 +434,13 @@ namespace CarCareTracker.Controllers
             try
             {
                 var httpClient = _httpClientFactory.CreateClient();
-                var translations = await httpClient.GetFromJsonAsync<Translations>(StaticHelper.TranslationDirectoryPath) ?? new Translations();
+                var translations = await GetJsonFromUrl<Translations>(httpClient, StaticHelper.TranslationDirectoryPath) ?? new Translations();
                 int translationsDownloaded = 0;
                 foreach (string translation in translations.Asia)
                 {
                     try
                     {
-                        var translationData = await httpClient.GetFromJsonAsync<Dictionary<string, string>>(StaticHelper.GetTranslationDownloadPath("Asia", translation)) ?? new Dictionary<string, string>();
+                        var translationData = await GetJsonFromUrl<Dictionary<string, string>>(httpClient, StaticHelper.GetTranslationDownloadPath("Asia", translation)) ?? new Dictionary<string, string>();
                         if (translationData.Any())
                         {
                             var result = _translationHelper.SaveTranslation(translation, translationData);
@@ -450,7 +459,7 @@ namespace CarCareTracker.Controllers
                 {
                     try
                     {
-                        var translationData = await httpClient.GetFromJsonAsync<Dictionary<string, string>>(StaticHelper.GetTranslationDownloadPath("Africa", translation)) ?? new Dictionary<string, string>();
+                        var translationData = await GetJsonFromUrl<Dictionary<string, string>>(httpClient, StaticHelper.GetTranslationDownloadPath("Africa", translation)) ?? new Dictionary<string, string>();
                         if (translationData.Any())
                         {
                             var result = _translationHelper.SaveTranslation(translation, translationData);
@@ -469,7 +478,7 @@ namespace CarCareTracker.Controllers
                 {
                     try
                     {
-                        var translationData = await httpClient.GetFromJsonAsync<Dictionary<string, string>>(StaticHelper.GetTranslationDownloadPath("Europe", translation)) ?? new Dictionary<string, string>();
+                        var translationData = await GetJsonFromUrl<Dictionary<string, string>>(httpClient, StaticHelper.GetTranslationDownloadPath("Europe", translation)) ?? new Dictionary<string, string>();
                         if (translationData.Any())
                         {
                             var result = _translationHelper.SaveTranslation(translation, translationData);
@@ -488,7 +497,7 @@ namespace CarCareTracker.Controllers
                 {
                     try
                     {
-                        var translationData = await httpClient.GetFromJsonAsync<Dictionary<string, string>>(StaticHelper.GetTranslationDownloadPath("NorthAmerica", translation)) ?? new Dictionary<string, string>();
+                        var translationData = await GetJsonFromUrl<Dictionary<string, string>>(httpClient, StaticHelper.GetTranslationDownloadPath("NorthAmerica", translation)) ?? new Dictionary<string, string>();
                         if (translationData.Any())
                         {
                             var result = _translationHelper.SaveTranslation(translation, translationData);
@@ -507,7 +516,7 @@ namespace CarCareTracker.Controllers
                 {
                     try
                     {
-                        var translationData = await httpClient.GetFromJsonAsync<Dictionary<string, string>>(StaticHelper.GetTranslationDownloadPath("SouthAmerica", translation)) ?? new Dictionary<string, string>();
+                        var translationData = await GetJsonFromUrl<Dictionary<string, string>>(httpClient, StaticHelper.GetTranslationDownloadPath("SouthAmerica", translation)) ?? new Dictionary<string, string>();
                         if (translationData.Any())
                         {
                             var result = _translationHelper.SaveTranslation(translation, translationData);
@@ -526,7 +535,7 @@ namespace CarCareTracker.Controllers
                 {
                     try
                     {
-                        var translationData = await httpClient.GetFromJsonAsync<Dictionary<string, string>>(StaticHelper.GetTranslationDownloadPath("Oceania", translation)) ?? new Dictionary<string, string>();
+                        var translationData = await GetJsonFromUrl<Dictionary<string, string>>(httpClient, StaticHelper.GetTranslationDownloadPath("Oceania", translation)) ?? new Dictionary<string, string>();
                         if (translationData.Any())
                         {
                             var result = _translationHelper.SaveTranslation(translation, translationData);
