@@ -637,7 +637,7 @@ namespace CarCareTracker.Controllers
             {
                 //download file
                 var fullExportFilePath = _fileHelper.GetFullFilePath(result, false);
-                var fileContents = _fileHelper.GetFileBytes(fullExportFilePath);
+                var fileContents = await _fileHelper.GetFileBytesAsync(fullExportFilePath);
                 return File(fileContents, "application/zip", Path.GetFileName(result));
             }
             else if (output.Trim().ToLower() == "email")
@@ -647,7 +647,7 @@ namespace CarCareTracker.Controllers
                 {
                     //download file
                     var fullExportFilePath = _fileHelper.GetFullFilePath(result, false);
-                    var fileContents = _fileHelper.GetFileBytes(fullExportFilePath);
+                    var fileContents = await _fileHelper.GetFileBytesAsync(fullExportFilePath);
                     var emailResponse = await _mailHelper.SendBackupEmail(Path.GetFileName(result), fileContents, defaultEmailAddress);
                     return Json(emailResponse);
                 } 
