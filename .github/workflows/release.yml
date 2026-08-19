@@ -1,0 +1,49 @@
+name: Build and Release LubeLogger (linux_x64)
+
+# Läuft automatisch, sobald du einen Tag wie "v1.0.0" pushst:
+#   git tag v1.0.0
+#   git push origin v1.0.0
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write   # nötig, damit die Action ein GitHub Release erstellen darf
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: .NET 10 SDK installieren
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Für linux-x64 (self-contained) publishen
+        run: |
+          dotnet publish CarCareTracker.csproj \
+            -c Release \
+            -r linux-x64 \
+            --self-contained true \
+            -p:PublishSingleFile=false \
+            -o publish/linux_x64
+
+      - name: Zip mit korrektem Namensmuster bauen
+        # fetch_and_deploy_gh_release im Proxmox-Skript sucht nach "LubeLogger*linux_x64.zip"
+        run: |
+          cd publish/linux_x64
+          zip -r "../../LubeLogger_${GITHUB_REF_NAME}_linux_x64.zip" .
+
+      - name: GitHub Release erstellen und Zip anhängen
+        uses: softprops/action-gh-release@v2
+        with:
+          files: LubeLogger_${{ github.ref_name }}_linux_x64.zip
+          draft: false          # WICHTIG: darf kein Draft sein, sonst findet das Skript es nicht
+          prerelease: false     # WICHTIG: darf kein Pre-Release sein, sonst wird es ignoriert
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
