@@ -14,7 +14,7 @@ namespace CarCareTracker.Helper
     /// </summary>
     public static class StaticHelper
     {
-        public const string VersionNumber = "1.7.1";
+        public const string VersionNumber = "1.8.0";
         public const string DbName = "data/cartracker.db";
         public const string UserConfigPath = "data/config/userConfig.json";
         public const string ServerConfigPath = "data/config/serverConfig.json";
@@ -73,7 +73,7 @@ namespace CarCareTracker.Helper
                 case ReminderUrgency.VeryUrgent:
                     return "text-bg-danger";
                 case ReminderUrgency.PastDue:
-                    return "text-bg-secondary";
+                    return "text-bg-pastdue";
                 default:
                     return "text-bg-warning";
             }
@@ -87,7 +87,7 @@ namespace CarCareTracker.Helper
                 case "VeryUrgent":
                     return "text-bg-danger";
                 case "PastDue":
-                    return "text-bg-secondary";
+                    return "text-bg-pastdue";
                 default:
                     return "text-bg-warning";
             }

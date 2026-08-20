@@ -103,6 +103,13 @@ function deleteReminderRecord(reminderRecordId, e) {
         }
     });
 }
+function toggleUrgencyOverride() {
+    if ($("#reminderUseUrgencyOverride").is(':checked')) {
+        $("#reminderUrgencyOverrideContainer").collapse('show');
+    } else {
+        $("#reminderUrgencyOverrideContainer").collapse('hide');
+    }
+}
 function toggleCustomThresholds() {
     var isChecked = $("#reminderUseCustomThresholds").is(':checked');
     if (isChecked) {
@@ -172,17 +179,47 @@ function enableRecurring() {
     }
 }
 
+//recurring reminders are pushed to their next interval, everything else is archived.
 function markDoneReminderRecord(reminderRecordId, e) {
-    event.stopPropagation();
+    if (e != undefined) {
+        event.stopPropagation();
+    }
     var vehicleId = GetVehicleId().vehicleId;
-    $.post(`/Vehicle/PushbackRecurringReminderRecord?reminderRecordId=${reminderRecordId}`, function (data) {
+    $.post(`/Vehicle/MarkReminderRecordAsDone?reminderRecordId=${reminderRecordId}`, function (data) {
         if (data.success) {
-            successToast("Reminder Updated");
+            hideAddReminderRecordModal();
+            successToast(data.message ? data.message : "Reminder Updated");
             getVehicleReminders(vehicleId);
         } else {
             errorToast(data.message);
         }
     });
+}
+function reopenReminderRecord(reminderRecordId, e) {
+    if (e != undefined) {
+        event.stopPropagation();
+    }
+    var vehicleId = GetVehicleId().vehicleId;
+    $.post(`/Vehicle/ReopenReminderRecord?reminderRecordId=${reminderRecordId}`, function (data) {
+        if (data.success) {
+            hideAddReminderRecordModal();
+            successToast(data.message ? data.message : "Reminder Updated");
+            getVehicleReminders(vehicleId);
+        } else {
+            errorToast(data.message);
+        }
+    });
+}
+function toggleCompletedReminders(sender) {
+    var completedRows = $("#reminder-tab-pane tr.reminder-completed");
+    var icon = $(sender).find('i');
+    if (completedRows.hasClass('reminder-hide-completed')) {
+        completedRows.removeClass('reminder-hide-completed');
+        icon.removeClass('bi-eye').addClass('bi-eye-slash');
+    } else {
+        completedRows.addClass('reminder-hide-completed');
+        icon.removeClass('bi-eye-slash').addClass('bi-eye');
+    }
 }
 
 function getAndValidateReminderRecordValues() {
@@ -203,6 +240,8 @@ function getAndValidateReminderRecordValues() {
     var reminderUrgentDistance = $("#reminderUrgentDistance").val();
     var reminderVeryUrgentDistance = $("#reminderVeryUrgentDistance").val();
     var reminderFixedIntervals = $("#reminderFixedIntervals").is(":checked");
+    var reminderUseUrgencyOverride = $("#reminderUseUrgencyOverride").is(":checked");
+    var reminderUrgencyOverride = $("#reminderUrgencyOverride").val();
     //validation
     var hasError = false;
     var reminderDateIsInvalid = reminderDate.trim() == ''; //eliminates whitespace.
@@ -286,7 +325,9 @@ function getAndValidateReminderRecordValues() {
         customMileageInterval: customMileageInterval,
         customMonthInterval: customMonthInterval,
         customMonthIntervalUnit: customMonthIntervalUnit,
-        tags: reminderTags
+        tags: reminderTags,
+        useUrgencyOverride: reminderUseUrgencyOverride,
+        urgencyOverride: reminderUrgencyOverride
     }
 }
 function createPlanRecordFromReminder(reminderRecordId) {
@@ -341,24 +382,24 @@ function filterReminderTable(sender) {
 }
 function updateReminderAggregateLabels() {
     //update main count
-    var newCount = $("[data-record-type='cost']").parent(":not('.override-hide')").length;
+    var newCount = $("[data-record-type='cost']").parent(":not('.override-hide'):not('.reminder-completed')").length;
     var countLabel = $("[data-aggregate-type='count']");
     countLabel.text(`${countLabel.text().split(':')[0]}: ${newCount}`);
     //update labels
     //paste due
-    var pastDueCount = $("tr td span.badge.text-bg-secondary").parents("tr:not('.override-hide')").length;
+    var pastDueCount = $("tr td span.badge.text-bg-pastdue").parents("tr:not('.override-hide'):not('.reminder-completed')").length;
     var pastDueLabel = $('[data-aggregate-type="pastdue-count"]');
     pastDueLabel.text(`${pastDueLabel.text().split(':')[0]}: ${pastDueCount}`);
     //very urgent
-    var veryUrgentCount = $("tr td span.badge.text-bg-danger").parents("tr:not('.override-hide')").length;
+    var veryUrgentCount = $("tr td span.badge.text-bg-danger").parents("tr:not('.override-hide'):not('.reminder-completed')").length;
     var veryUrgentLabel = $('[data-aggregate-type="veryurgent-count"]');
     veryUrgentLabel.text(`${veryUrgentLabel.text().split(':')[0]}: ${veryUrgentCount}`);
     //urgent
-    var urgentCount = $("tr td span.badge.text-bg-warning").parents("tr:not('.override-hide')").length;
+    var urgentCount = $("tr td span.badge.text-bg-warning").parents("tr:not('.override-hide'):not('.reminder-completed')").length;
     var urgentLabel = $('[data-aggregate-type="urgent-count"]');
     urgentLabel.text(`${urgentLabel.text().split(':')[0]}: ${urgentCount}`);
     //not urgent
-    var notUrgentCount = $("tr td span.badge.text-bg-success").parents("tr:not('.override-hide')").length;
+    var notUrgentCount = $("tr td span.badge.text-bg-success").parents("tr:not('.override-hide'):not('.reminder-completed')").length;
     var notUrgentLabel = $('[data-aggregate-type="noturgent-count"]');
     notUrgentLabel.text(`${notUrgentLabel.text().split(':')[0]}: ${notUrgentCount}`);
 }

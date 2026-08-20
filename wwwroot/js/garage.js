@@ -130,12 +130,39 @@ function generateReminderItem(id, urgency, description) {
     }
 }
 function markDoneCalendarReminderRecord(reminderRecordId, e) {
-    event.stopPropagation();
-    $.post(`/Vehicle/PushbackRecurringReminderRecord?reminderRecordId=${reminderRecordId}`, function (data) {
+    if (e != undefined) {
+        event.stopPropagation();
+    }
+    $.post(`/Vehicle/MarkReminderRecordAsDone?reminderRecordId=${reminderRecordId}`, function (data) {
         if (data.success) {
             hideCalendarReminderModal();
-            successToast("Reminder Updated");
+            successToast(data.message ? data.message : "Reminder Updated");
             refreshCalendarReminderSource();
+        } else {
+            errorToast(data.message);
+        }
+    });
+}
+function reopenCalendarReminderRecord(reminderRecordId, e) {
+    if (e != undefined) {
+        event.stopPropagation();
+    }
+    $.post(`/Vehicle/ReopenReminderRecord?reminderRecordId=${reminderRecordId}`, function (data) {
+        if (data.success) {
+            hideCalendarReminderModal();
+            successToast(data.message ? data.message : "Reminder Updated");
+            refreshCalendarReminderSource();
+        } else {
+            errorToast(data.message);
+        }
+    });
+}
+function markDoneUpcomingReminder(reminderRecordId, e) {
+    event.stopPropagation();
+    $.post(`/Vehicle/MarkReminderRecordAsDone?reminderRecordId=${reminderRecordId}`, function (data) {
+        if (data.success) {
+            successToast(data.message ? data.message : "Reminder Updated");
+            getUpcomingItems();
         } else {
             errorToast(data.message);
         }

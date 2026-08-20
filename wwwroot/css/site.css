@@ -1,4 +1,4 @@
-html {
+﻿html {
     font-size: 14px;
 }
 
@@ -486,6 +486,25 @@ input[type="file"] {
 
 .override-hide {
     display: none !important;
+}
+
+/* Past Due is the highest urgency level, so it has to read louder than "Very Urgent". */
+.text-bg-pastdue {
+    color: #fff !important;
+    background-color: #6a1520 !important;
+}
+
+.reminder-hide-completed {
+    display: none !important;
+}
+
+.reminder-completed > td {
+    opacity: 0.55;
+    text-decoration: line-through;
+}
+
+.reminder-completed > td .badge, .reminder-completed > td button {
+    text-decoration: none;
 }
 
 .reminderCalendarViewContent .datepicker, .reminderCalendarViewContent .datepicker-inline, .reminderCalendarViewContent .datepicker-days, .reminderCalendarViewContent .table-condensed {

@@ -95,7 +95,10 @@ namespace CarCareTracker.Helper
                     Metric = reminder.Metric,
                     UserMetric = reminder.Metric,
                     IsRecurring = reminder.IsRecurring,
-                    Tags = reminder.Tags
+                    Tags = reminder.Tags,
+                    UseUrgencyOverride = reminder.UseUrgencyOverride,
+                    IsCompleted = reminder.IsCompleted,
+                    CompletedDate = reminder.CompletedDate
                 };
                 if (reminder.Metric == ReminderMetric.Both)
                 {
@@ -166,6 +169,12 @@ namespace CarCareTracker.Helper
                         reminderViewModel.Urgency = ReminderUrgency.Urgent;
                     }
                     reminderViewModel.DueMileage = reminder.Mileage - currentMileage;
+                }
+                //a manually set urgency replaces the calculated one entirely.
+                //due days and due distance above stay untouched so they can still be displayed.
+                if (reminder.UseUrgencyOverride)
+                {
+                    reminderViewModel.Urgency = reminder.UrgencyOverride;
                 }
                 reminderViewModels.Add(reminderViewModel);
             }

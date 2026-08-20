@@ -19,12 +19,23 @@
     {
         distanceUnit = userConfig.UseMPG ? @translator.Translate(userLanguage, "miles") : @translator.Translate(userLanguage, "kilometers");
     }
+    var completedLabel = translator.Translate(userLanguage, "Completed");
+    if (Model.CompletedDate.HasValue)
+    {
+        completedLabel = $"{completedLabel}: {Model.CompletedDate.Value.ToShortDateString()}";
+    }
 }
 <div class="modal-header">
     <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Reminder") : translator.Translate(userLanguage, "Edit Reminder"))<a class="ms-1 link-body-emphasis" onclick="@(isNew ? $"createQR('add', '')" : $"createQR('id', {Model.Id})")"><i class="bi bi-qr-code"></i></a></h5>
     <button type="button" class="btn-close" onclick="hideAddReminderRecordModal()" aria-label="Close"></button>
 </div>
 <div class="modal-body" onkeydown="handleEnter(this)">
+    @if (Model.IsCompleted)
+    {
+        <div class="alert alert-secondary py-2 mb-2">
+            <i class="bi bi-check-circle me-2"></i>@completedLabel
+        </div>
+    }
     <form>
         <div class="form-group">
             <div class="row">
@@ -113,6 +124,19 @@
                         <!option value="FiveYears" @(Model.ReminderMonthInterval == ReminderMonthInterval.FiveYears ? "selected" : "")>@translator.Translate(userLanguage, "5 Years")</!option>
                     </select>
                     <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" onchange="toggleUrgencyOverride()" id="reminderUseUrgencyOverride" checked="@Model.UseUrgencyOverride">
+                        <label class="form-check-label" for="reminderUseUrgencyOverride">@translator.Translate(userLanguage, "Set Urgency Manually")</label>
+                    </div>
+                    <div class="collapse @(Model.UseUrgencyOverride ? "show" : "")" id="reminderUrgencyOverrideContainer">
+                        <select class="form-select" id="reminderUrgencyOverride">
+                            <!option value="NotUrgent" @(Model.UrgencyOverride == ReminderUrgency.NotUrgent ? "selected" : "")>@translator.Translate(userLanguage, "Not Urgent")</!option>
+                            <!option value="Urgent" @(Model.UrgencyOverride == ReminderUrgency.Urgent ? "selected" : "")>@translator.Translate(userLanguage, "Urgent")</!option>
+                            <!option value="VeryUrgent" @(Model.UrgencyOverride == ReminderUrgency.VeryUrgent ? "selected" : "")>@translator.Translate(userLanguage, "Very Urgent")</!option>
+                            <!option value="PastDue" @(Model.UrgencyOverride == ReminderUrgency.PastDue ? "selected" : "")>@translator.Translate(userLanguage, "Past Due")</!option>
+                        </select>
+                        <small class="text-body-secondary">@translator.Translate(userLanguage, "Replaces the urgency calculated from date and odometer")</small>
+                    </div>
+                    <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" role="switch" onchange="toggleCustomThresholds()" id="reminderUseCustomThresholds" checked="@Model.UseCustomThresholds">
                         <label class="form-check-label" for="reminderUseCustomThresholds">@translator.Translate(userLanguage, "Use Custom Thresholds")</label>
                     </div>
@@ -141,6 +165,14 @@
             <button type="button" class="btn btn-warning" onclick="createPlanRecordFromReminder(@Model.Id)">@translator.Translate(userLanguage, "Plan")</button>
         }
         <button type="button" class="btn btn-danger" onclick="deleteReminderRecord(@Model.Id)" style="margin-right:auto;">@translator.Translate(userLanguage, "Delete")</button>
+        @if (Model.IsCompleted)
+        {
+            <button type="button" class="btn btn-outline-secondary" onclick="reopenReminderRecord(@Model.Id)"><i class="bi bi-arrow-counterclockwise me-2"></i>@translator.Translate(userLanguage, "Reopen")</button>
+        }
+        else
+        {
+            <button type="button" class="btn btn-success" onclick="markDoneReminderRecord(@Model.Id)"><i class="bi bi-check-lg me-2"></i>@translator.Translate(userLanguage, "Mark as Done")</button>
+        }
     }
     <button type="button" class="btn btn-secondary" onclick="hideAddReminderRecordModal()">@translator.Translate(userLanguage, "Cancel")</button>
     @if (isNew)

@@ -24,5 +24,11 @@
         /// </summary>
         public bool IsRecurring { get; set; } = false;
         public List<string> Tags { get; set; } = new List<string>();
+        /// <summary>
+        /// True when Urgency was set by hand rather than calculated.
+        /// </summary>
+        public bool UseUrgencyOverride { get; set; } = false;
+        public bool IsCompleted { get; set; } = false;
+        public DateTime? CompletedDate { get; set; }
     }
 }

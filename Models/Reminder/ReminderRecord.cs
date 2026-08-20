@@ -19,5 +19,16 @@
         public ReminderMonthInterval ReminderMonthInterval { get; set; } = ReminderMonthInterval.OneYear;
         public ReminderMetric Metric { get; set; } = ReminderMetric.Date;
         public List<string> Tags { get; set; } = new List<string>();
+        /// <summary>
+        /// Manually set urgency. When enabled it replaces the calculated urgency entirely,
+        /// regardless of date or odometer.
+        /// </summary>
+        public bool UseUrgencyOverride { get; set; } = false;
+        public ReminderUrgency UrgencyOverride { get; set; } = ReminderUrgency.NotUrgent;
+        /// <summary>
+        /// Non-recurring reminders are archived instead of pushed back when marked as done.
+        /// </summary>
+        public bool IsCompleted { get; set; } = false;
+        public DateTime? CompletedDate { get; set; }
     }
 }

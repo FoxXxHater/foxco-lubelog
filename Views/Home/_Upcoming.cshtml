@@ -62,8 +62,9 @@
                             <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Vehicle")</th>
                             <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Urgency")</th>
                             <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Due Date")</th>
-                            <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Description")</th>
+                            <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Description")</th>
                             <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@translator.Translate(userLanguage, "Notes")</th>
+                            <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate hideOnPrint">@translator.Translate(userLanguage, "Done")</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,6 +79,10 @@
                                 </td>
                                 <td data-label="@translator.Translate(userLanguage, "Urgency")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">
                                     <span class="badge @StaticHelper.GetReminderUrgencyColor(reminder.Urgency)">@translator.Translate(userLanguage, StaticHelper.GetTitleCaseReminderUrgency(reminder.Urgency))</span>
+                                    @if (reminder.UseUrgencyOverride)
+                                    {
+                                        <i class="bi bi-pin-angle-fill ms-1" title="@translator.Translate(userLanguage, "Set Urgency Manually")"></i>
+                                    }
                                 </td>
                                 <td data-label="@translator.Translate(userLanguage, "Due Date")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">
                                     @if (reminder.UserMetric == ReminderMetric.Date || reminder.UserMetric == ReminderMetric.Both)
@@ -91,8 +96,11 @@
                                         <small class="text-body-secondary">@($"{reminder.DueMileage} {distanceUnit} {translator.Translate(userLanguage, "remaining")}")</small>
                                     }
                                 </td>
-                                <td data-label="@translator.Translate(userLanguage, "Description")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate">@reminder.Description</td>
+                                <td data-label="@translator.Translate(userLanguage, "Description")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@reminder.Description</td>
                                 <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate">@StaticHelper.TruncateStrings(reminder.Notes)</td>
+                                <td data-label="@translator.Translate(userLanguage, "Done")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate hideOnPrint">
+                                    <button type="button" class="btn btn-sm btn-secondary" title="@translator.Translate(userLanguage, "Mark as Done")" onclick="markDoneUpcomingReminder(@reminder.Id, this)"><i class="bi bi-check-lg"></i></button>
+                                </td>
                             </tr>
                         }
                     </tbody>

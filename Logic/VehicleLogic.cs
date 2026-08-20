@@ -276,6 +276,7 @@ namespace CarCareTracker.Logic
         public bool GetVehicleHasUrgentOrPastDueReminders(int vehicleId, int currentMileage)
         {
             var reminders = _reminderRecordDataAccess.GetReminderRecordsByVehicleId(vehicleId);
+            reminders.RemoveAll(x => x.IsCompleted);
             var results = _reminderHelper.GetReminderRecordViewModels(reminders, currentMileage, DateTime.Now);
             return results.Any(x => x.Urgency == ReminderUrgency.VeryUrgent || x.Urgency == ReminderUrgency.PastDue);
         }
@@ -339,6 +340,7 @@ namespace CarCareTracker.Logic
             foreach (Vehicle vehicle in vehicles)
             {
                 var vehicleReminders = _reminderRecordDataAccess.GetReminderRecordsByVehicleId(vehicle.Id);
+                vehicleReminders.RemoveAll(x => x.IsCompleted);
                 if (isCalendar)
                 {
                     vehicleReminders.RemoveAll(x => x.Metric == ReminderMetric.Odometer);
@@ -360,6 +362,7 @@ namespace CarCareTracker.Logic
             foreach (Vehicle vehicle in vehicles)
             {
                 var vehicleReminders = _reminderRecordDataAccess.GetReminderRecordsByVehicleId(vehicle.Id);
+                vehicleReminders.RemoveAll(x => x.IsCompleted);
                 if (vehicleReminders.Any())
                 {
                     var vehicleMileage = GetMaxMileage(vehicle.Id);

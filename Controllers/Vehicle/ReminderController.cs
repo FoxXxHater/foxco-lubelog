@@ -17,6 +17,7 @@ namespace CarCareTracker.Controllers
         private bool GetAndUpdateVehicleUrgentOrPastDueReminders(int vehicleId)
         {
             var result = GetRemindersAndUrgency(vehicleId, DateTime.Now);
+            result.RemoveAll(x => x.IsCompleted);
             //check if user wants auto-refresh past-due reminders
             if (_config.GetUserConfig(User).EnableAutoReminderRefresh && _userLogic.UserCanEditVehicle(GetUserID(), vehicleId, HouseholdPermission.Edit))
             {
@@ -57,7 +58,7 @@ namespace CarCareTracker.Controllers
         public IActionResult GetReminderRecordsByVehicleId(int vehicleId)
         {
             var result = GetRemindersAndUrgency(vehicleId, DateTime.Now);
-            result = result.OrderByDescending(x => x.Urgency).ToList();
+            result = result.OrderBy(x => x.IsCompleted).ThenByDescending(x => x.Urgency).ToList();
             return PartialView("Reminder/_ReminderRecords", result);
         }
         [TypeFilter(typeof(CollaboratorFilter))]
@@ -65,7 +66,7 @@ namespace CarCareTracker.Controllers
         public IActionResult GetRecurringReminderRecordsByVehicleId(int vehicleId)
         {
             var result = GetRemindersAndUrgency(vehicleId, DateTime.Now);
-            result.RemoveAll(x => !x.IsRecurring);
+            result.RemoveAll(x => !x.IsRecurring || x.IsCompleted);
             result = result.OrderByDescending(x => x.Urgency).ThenBy(x => x.Description).ToList();
             return PartialView("_RecurringReminderSelector", result);
         }
@@ -109,6 +110,76 @@ namespace CarCareTracker.Controllers
                 return OperationResponse.Failed(StaticHelper.GenericErrorMessage);
             }
         }
+        /// <summary>
+        /// Recurring reminders move on to their next interval, everything else gets archived.
+        /// Either way the urgency stops counting.
+        /// </summary>
+        [HttpPost]
+        public IActionResult MarkReminderRecordAsDone(int reminderRecordId)
+        {
+            try
+            {
+                var existingReminder = _reminderRecordDataAccess.GetReminderRecordById(reminderRecordId);
+                if (existingReminder is null || existingReminder.Id == default)
+                {
+                    _logger.LogError("Unable to update reminder because it no longer exists.");
+                    return Json(OperationResponse.Failed("Unable to update reminder because it no longer exists."));
+                }
+                //security check
+                if (!_userLogic.UserCanEditVehicle(GetUserID(), existingReminder.VehicleId, HouseholdPermission.Edit))
+                {
+                    return Json(OperationResponse.Failed("Access Denied"));
+                }
+                if (existingReminder.IsRecurring)
+                {
+                    return Json(PushbackRecurringReminderRecordWithChecks(reminderRecordId, null, null));
+                }
+                existingReminder.IsCompleted = true;
+                existingReminder.CompletedDate = DateTime.Now;
+                var result = _reminderRecordDataAccess.SaveReminderRecordToVehicle(existingReminder);
+                if (result)
+                {
+                    _eventLogic.PublishEvent(GetUserID(), WebHookPayload.FromReminderRecord(existingReminder, "reminderrecord.update", User.Identity?.Name ?? string.Empty));
+                }
+                return Json(OperationResponse.Conditional(result, "Reminder Completed", StaticHelper.GenericErrorMessage));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return Json(OperationResponse.Failed(StaticHelper.GenericErrorMessage));
+            }
+        }
+        [HttpPost]
+        public IActionResult ReopenReminderRecord(int reminderRecordId)
+        {
+            try
+            {
+                var existingReminder = _reminderRecordDataAccess.GetReminderRecordById(reminderRecordId);
+                if (existingReminder is null || existingReminder.Id == default)
+                {
+                    _logger.LogError("Unable to update reminder because it no longer exists.");
+                    return Json(OperationResponse.Failed("Unable to update reminder because it no longer exists."));
+                }
+                //security check
+                if (!_userLogic.UserCanEditVehicle(GetUserID(), existingReminder.VehicleId, HouseholdPermission.Edit))
+                {
+                    return Json(OperationResponse.Failed("Access Denied"));
+                }
+                existingReminder.IsCompleted = false;
+                existingReminder.CompletedDate = null;
+                var result = _reminderRecordDataAccess.SaveReminderRecordToVehicle(existingReminder);
+                if (result)
+                {
+                    _eventLogic.PublishEvent(GetUserID(), WebHookPayload.FromReminderRecord(existingReminder, "reminderrecord.update", User.Identity?.Name ?? string.Empty));
+                }
+                return Json(OperationResponse.Conditional(result, "Reminder Reopened", StaticHelper.GenericErrorMessage));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return Json(OperationResponse.Failed(StaticHelper.GenericErrorMessage));
+            }
+        }
         [HttpPost]
         public IActionResult SaveReminderRecordToVehicleId(ReminderRecordInput reminderRecord)
         {
@@ -117,10 +188,21 @@ namespace CarCareTracker.Controllers
             {
                 return Json(OperationResponse.Failed("Access Denied"));
             }
-            var result = _reminderRecordDataAccess.SaveReminderRecordToVehicle(reminderRecord.ToReminderRecord());
+            var reminderToSave = reminderRecord.ToReminderRecord();
+            if (reminderToSave.Id != default)
+            {
+                //completion state is only changed through MarkReminderRecordAsDone/ReopenReminderRecord.
+                var storedReminder = _reminderRecordDataAccess.GetReminderRecordById(reminderToSave.Id);
+                if (storedReminder is not null && storedReminder.Id != default)
+                {
+                    reminderToSave.IsCompleted = storedReminder.IsCompleted;
+                    reminderToSave.CompletedDate = storedReminder.CompletedDate;
+                }
+            }
+            var result = _reminderRecordDataAccess.SaveReminderRecordToVehicle(reminderToSave);
             if (result)
             {
-                _eventLogic.PublishEvent(GetUserID(), WebHookPayload.FromReminderRecord(reminderRecord.ToReminderRecord(), reminderRecord.Id == default ? "reminderrecord.add" : "reminderrecord.update", User.Identity?.Name ?? string.Empty));
+                _eventLogic.PublishEvent(GetUserID(), WebHookPayload.FromReminderRecord(reminderToSave, reminderRecord.Id == default ? "reminderrecord.add" : "reminderrecord.update", User.Identity?.Name ?? string.Empty));
             }
             return Json(OperationResponse.Conditional(result, string.Empty, StaticHelper.GenericErrorMessage));
         }
@@ -169,7 +251,11 @@ namespace CarCareTracker.Controllers
                 CustomMonthInterval = result.CustomMonthInterval,
                 CustomMonthIntervalUnit = result.CustomMonthIntervalUnit,
                 Tags = result.Tags,
-                UseHours = vehicleUseHours
+                UseHours = vehicleUseHours,
+                UseUrgencyOverride = result.UseUrgencyOverride,
+                UrgencyOverride = result.UrgencyOverride,
+                IsCompleted = result.IsCompleted,
+                CompletedDate = result.CompletedDate
             };
             return PartialView("Reminder/_ReminderRecordModal", convertedResult);
         }

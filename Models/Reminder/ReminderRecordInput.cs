@@ -19,6 +19,13 @@
         public ReminderMonthInterval ReminderMonthInterval { get; set; } = ReminderMonthInterval.OneYear;
         public ReminderMetric Metric { get; set; } = ReminderMetric.Date;
         public List<string> Tags { get; set; } = new List<string>();
+        public bool UseUrgencyOverride { get; set; } = false;
+        public ReminderUrgency UrgencyOverride { get; set; } = ReminderUrgency.NotUrgent;
+        /// <summary>
+        /// Not posted by the form - carried over from the stored record when editing.
+        /// </summary>
+        public bool IsCompleted { get; set; } = false;
+        public DateTime? CompletedDate { get; set; }
         public ReminderRecord ToReminderRecord()
         {
             return new ReminderRecord
@@ -39,7 +46,11 @@
                 CustomMonthInterval = CustomMonthInterval,
                 CustomMonthIntervalUnit = CustomMonthIntervalUnit,
                 Notes = Notes,
-                Tags = Tags
+                Tags = Tags,
+                UseUrgencyOverride = UseUrgencyOverride,
+                UrgencyOverride = UrgencyOverride,
+                IsCompleted = IsCompleted,
+                CompletedDate = CompletedDate
             };
         }
         public bool CreatedFromRecord { get; set; } = false;
