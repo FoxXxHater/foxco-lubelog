@@ -48,20 +48,6 @@ Upstream renders *Past Due* in grey even though it is internally the highest urg
 
 *Get Translations* pulls the language files from [foxco-lubelog_translations](https://github.com/FoxXxHater/foxco-lubelog_translations) instead of the upstream repo, so this fork's own strings ship with it.
 
-### Installation
-
-This fork is **not published as a release** — there is no binary and no Docker image to download. It has to be built from source:
-
-```bash
-git clone https://github.com/FoxXxHater/foxco-lubelog.git
-cd foxco-lubelog
-dotnet publish -c Release -o ./publish
-```
-
-Requires the .NET 10 SDK. Building through the included `Dockerfile` works as well.
-
-> **Careful:** updating through the official install/update script pulls the upstream release and overwrites this fork's code. Data in the `data/` directory survives, the code does not.
-
 Everything else — configuration, reverse proxy, Postgres and so on — is unchanged and covered by the [original documentation](https://docs.lubelogger.com/).
 
 ---
@@ -101,20 +87,6 @@ Im Original wird *Überfällig* grau dargestellt, obwohl es intern die höchste 
 #### Übersetzungen aus dem eigenen Fork
 
 *Get Translations* lädt die Sprachdateien aus [foxco-lubelog_translations](https://github.com/FoxXxHater/foxco-lubelog_translations) statt aus dem Upstream-Repo, damit die Begriffe dieses Forks mit ausgeliefert werden können.
-
-### Installation
-
-Dieser Fork wird **nicht als fertiges Release veröffentlicht** — es gibt also kein Binary und kein Docker-Image zum Herunterladen. Er muss aus dem Quellcode gebaut werden:
-
-```bash
-git clone https://github.com/FoxXxHater/foxco-lubelog.git
-cd foxco-lubelog
-dotnet publish -c Release -o ./publish
-```
-
-Voraussetzung ist das .NET-10-SDK. Ein Docker-Build über das mitgelieferte `Dockerfile` funktioniert ebenfalls.
-
-> **Achtung:** Ein Update über das offizielle Installations- bzw. Update-Skript zieht das Upstream-Release und überschreibt damit den Code dieses Forks. Die Daten im `data/`-Verzeichnis überleben, der Code nicht.
 
 Alles Weitere zu Konfiguration, Reverse Proxy, Postgres und Co. steht unverändert in der [Original-Dokumentation](https://docs.lubelogger.com/).
 
