@@ -39,7 +39,7 @@ jobs:
           zip -r "../../LubeLogger_${GITHUB_REF_NAME}_linux_x64.zip" .
 
       - name: GitHub Release erstellen und Zip anhängen
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: LubeLogger_${{ github.ref_name }}_linux_x64.zip
           draft: false          # WICHTIG: darf kein Draft sein, sonst findet das Skript es nicht
