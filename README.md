@@ -55,27 +55,13 @@ Everything else — configuration, reverse proxy, Postgres and so on — is unch
 
 ### Installation & update (Proxmox LXC)
 
-The [community-scripts LubeLogger script](https://community-scripts.github.io/ProxmoxVE/scripts?id=lubelogger) installs the **upstream** release from `hargata/lubelog`, not this fork.
-
-> [!WARNING]
-> Running `update` inside the container installs the upstream version again. Your data is kept, but the features of this fork are gone.
-
-To switch a container to this fork, or to update it, run this inside the container (as root) and set `VERSION` to the release you want:
+The container is installed and updated with an adapted version of the community-scripts LubeLogger script from [PVE-Helper-Scripts](https://github.com/FoxXxHater/PVE-Helper-Scripts). It pulls the release from this fork. Run it on the Proxmox host to install, or inside the container to update:
 
 ```bash
-VERSION=v1.8.4
-systemctl stop lubelogger &&
-mkdir -p /root/lubelogger-backup &&
-cp -a /opt/lubelogger/data /opt/lubelogger/appsettings.json /root/lubelogger-backup/ &&
-curl -fL -o /tmp/lubelogger.zip "https://github.com/FoxXxHater/foxco-lubelog/releases/download/${VERSION}/LubeLogger_${VERSION}_linux_x64.zip" &&
-rm -rf /opt/lubelogger && mkdir -p /opt/lubelogger &&
-unzip -q /tmp/lubelogger.zip -d /opt/lubelogger &&
-cp -a /root/lubelogger-backup/. /opt/lubelogger/ &&
-chmod 700 /opt/lubelogger/CarCareTracker &&
-systemctl start lubelogger
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/FoxXxHater/PVE-Helper-Scripts/main/ct/lubelogger.sh)"
 ```
 
-The backup in `/root/lubelogger-backup` stays in place, so you can delete it once everything works. `appsettings.json` is restored as well, so the port set by the script (5000) is kept.
+On an update the script keeps `data`, `appsettings.json` and the logs.
 
 ### Maintenance
 
@@ -125,27 +111,13 @@ Alles Weitere zu Konfiguration, Reverse Proxy, Postgres und Co. steht unverände
 
 ### Installation & Update (Proxmox LXC)
 
-Das [LubeLogger-Skript der community-scripts](https://community-scripts.github.io/ProxmoxVE/scripts?id=lubelogger) installiert das Release des **Originals** aus `hargata/lubelog`, nicht diesen Fork.
-
-> [!WARNING]
-> `update` im Container spielt wieder die Originalversion ein. Die Daten bleiben erhalten, die Funktionen dieses Forks sind danach aber weg.
-
-Um einen Container auf diesen Fork umzustellen oder ihn zu aktualisieren, im Container (als root) ausführen und `VERSION` auf das gewünschte Release setzen:
+Der Container wird mit einer angepassten Version des LubeLogger-Skripts der community-scripts aus [PVE-Helper-Scripts](https://github.com/FoxXxHater/PVE-Helper-Scripts) installiert und aktualisiert. Es lädt das Release aus diesem Fork. Auf dem Proxmox-Host ausführen, um zu installieren, oder im Container, um zu aktualisieren:
 
 ```bash
-VERSION=v1.8.4
-systemctl stop lubelogger &&
-mkdir -p /root/lubelogger-backup &&
-cp -a /opt/lubelogger/data /opt/lubelogger/appsettings.json /root/lubelogger-backup/ &&
-curl -fL -o /tmp/lubelogger.zip "https://github.com/FoxXxHater/foxco-lubelog/releases/download/${VERSION}/LubeLogger_${VERSION}_linux_x64.zip" &&
-rm -rf /opt/lubelogger && mkdir -p /opt/lubelogger &&
-unzip -q /tmp/lubelogger.zip -d /opt/lubelogger &&
-cp -a /root/lubelogger-backup/. /opt/lubelogger/ &&
-chmod 700 /opt/lubelogger/CarCareTracker &&
-systemctl start lubelogger
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/FoxXxHater/PVE-Helper-Scripts/main/ct/lubelogger.sh)"
 ```
 
-Die Sicherung in `/root/lubelogger-backup` bleibt liegen und kann gelöscht werden, wenn alles läuft. `appsettings.json` wird mit zurückgespielt, damit der vom Skript gesetzte Port (5000) erhalten bleibt.
+Beim Update behält das Skript `data`, `appsettings.json` und die Logs.
 
 ### Wartung
 
