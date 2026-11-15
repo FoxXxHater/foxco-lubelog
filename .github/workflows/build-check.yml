@@ -1,0 +1,30 @@
+name: Build-Check
+
+# Prüft bei jedem Pull Request (und Push auf main), ob das Projekt baut.
+# Erstellt kein Release – das macht weiterhin release.yml bei einem Tag.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: .NET 10 SDK installieren
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore CarCareTracker.csproj
+
+      - name: Build
+        run: dotnet build CarCareTracker.csproj -c Release --no-restore
