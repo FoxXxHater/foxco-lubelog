@@ -2345,3 +2345,9 @@ function removeVehicleThumbnail() {
     $("#inputImageReplaceLabel").addClass('d-none');
     $("#inputImageUploadLabel").removeClass('d-none');
 }
+function hideActiveModal() {
+    let activeModal = $(".modal.show");
+    if (activeModal.length > 0) {
+        activeModal.modal('hide');
+    }
+}
